@@ -1,0 +1,67 @@
+---
+title: "Data Tydying"
+author: "Ibrahim Ilhan"
+date: "10/16/2018"
+output: html_document
+---
+
+#7.3 Setup
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning = F, message = F}
+library(dplyr)
+library(tidyr)
+```
+
+# Read and catch data from: ... head(catch_df), lists first 6 rows of the read.csv; catch_df, is read from the url with a method of libcurl 
+
+```{r}
+catch_df <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1", method = "libcurl"), stringsAsFactors = FALSE)
+head(catch_df)
+```
+
+#7.4 About the pipe (%>%) operator | command+shift+m = %>% 
+# If you think of the assignment operator (<-) as reading like “gets”, then the pipe operator would read like “then.”
+
+'select' the columns we need for analysis
+
+```{r}
+catch_clean <- catch_df %>%
+  #select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum)
+  select(-All, -notesRegCode)
+
+head(catch_clean)
+```
+
+```{r}
+catch_clean <- catch_df %>%
+  #select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum)
+  select(-All, -notesRegCode) %>%      # -disselect those columns (e.g. All and noteRegCode)
+  gather(key = "species", value = "catch", -Region, -Year)
+
+head(catch_clean)
+```
+
+```{r}
+catch_clean <- catch_df %>%
+  #select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum)
+  select(-All, -notesRegCode) %>%      # -disselect those columns (e.g. All and noteRegCode)
+  gather(key = "species", value = "catch", -Region, -Year)
+
+#head(catch_clean)
+tail(catch_clean)
+```
+```{r}
+catch_clean <- catch_df %>%
+  #select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum)
+  select(-All, -notesRegCode) %>%      # -disselect those columns (e.g. All and noteRegCode)
+  gather(key = "species", value = "catch", -Region, -Year) %>% 
+  rename(catch_thousands = catch)
+
+#head(catch_clean)
+tail(catch_clean)
+```
+
+
