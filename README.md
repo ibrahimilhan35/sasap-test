@@ -2,4 +2,7 @@
 Test Github training at SASAP
 
 ## Heading 2
-These changes are made of Github as part of practice
+These changes are made on Github.
+
+## Heading 3
+These changes are made in RStudio.
