@@ -10,3 +10,4 @@ These changes are made in RStudio.
 ---This change are made on RStudio
 
 ---Kirill's change
+---This R workshop is great!
