@@ -53,6 +53,7 @@ catch_clean <- catch_df %>%
 #head(catch_clean)
 tail(catch_clean)
 ```
+
 ```{r}
 catch_clean <- catch_df %>%
   #select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum)
@@ -64,4 +65,69 @@ catch_clean <- catch_df %>%
 tail(catch_clean)
 ```
 
+```{r}
+test <- as.numeric(catch_clean$catch_thousands)
+i <- which(is.na(test) == T)
+
+catch_clean[i, ]
+```
+
+
+```{r}
+catch_clean_mutated <- catch_clean %>%
+  mutate(catch_thousands = ifelse(catch_thousands == "I", 1, catch_thousands)) %>% 
+  mutate(catch_thousands = as.numeric(catch_thousands)) %>% 
+  mutate(catch = catch_thousands * 1000) %>%
+  select(-catch_thousands)
+
+tail(catch_clean_mutated)
+```
+
+```{r}
+catch_clean_mutated %>%
+  filter(species == "Chinook") %>% 
+  arrange(-catch)
+  #arrange(catch)
+  #group_by(Region) %>%
+  #summarise(mean(catch))
+  #7.8-7.11
+```
+
+# 7.12 Joins in dplyr
+# load region data table
+```{r}
+region_defs <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.303.1", method = "libcurl"), stringsAsFactors = FALSE)
+
+#read.ssv("user/home/...") | reading from a local directory
+
+head(region_defs)
+```
+
+```{r}
+catch_joined <- left_join(catch_clean_mutated, region_defs, by = c("Region" = "code"))
+
+head(catch_joined)
+#nrow(catch_joined)
+#nrow(catch_clean_mutated)
+```
+
+```{r}
+dates_df <- data.frame(date = c("5/24/1930",
+                                "5/25/1930",
+                                "5/26/1930",
+                                "5/27/1930",
+                                "5/28/1930"),
+                       stringsAsFactors = FALSE)
+
+dates_df
+```
+
+#7.13 separate() and unite()
+```{r}
+dates_separate <- dates_df %>%
+  separate(date, into = c("month", "day", "year"), remove = F) %>% 
+  unite(date_isl, year, month, day, sep = "-")
+
+dates_separate
+```
 

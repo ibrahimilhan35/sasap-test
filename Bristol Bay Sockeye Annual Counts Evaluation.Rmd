@@ -1,0 +1,76 @@
+---
+title: "Escapement Goals Evaluation"
+author: "Ibrahim Ilhan"
+date: "10/17/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# setup, include=FALSE
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparing Daily Escapment Data
+Alaska Department of Fish and Game. 2017. Daily salmon escapement counts (ADFG_firstAttempt_reformatted.csv) from the OceanAK database, Alaska, 1921-2017. Knowledge Network for Biocomplexity. doi:10.5063/F1TX3CKH.
+
++ Reading data from url
+```{r}
+daily_escapement_data <- read.csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3Af119a05b-bbe7-4aea-93c6-85434dcb1c5e")
+```
+
++ Viewing what's in the file (first six rows)
+```{r}
+head(daily_escapement_data)
+#tail(daily_escapement_data)
+```
++ Necessary libraries for packages that will be used
+```{r warning=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+```
+
+# Preparing Sockeye Escapment Goals
++ Printing unique information within the SASAP.Region
+```{r}
+unique(daily_escapement_data$SASAP.Region)
+```
+
++ Filtering region (Bristol Bay) and type of salmon (Sockeye) from daily_escapement_data
+```{r}
+daily_escapement_sockeye <- daily_escapement_data %>% 
+  filter(Species == "Sockeye") %>% 
+  filter(SASAP.Region == "Bristol Bay")
+  head(daily_escapement_sockeye)
+```
+# Evaluating Sockeye Escapment Goals
++ Summarizing yearly counts of Sockeye for each river
+```{r}
+daily_escapement_sockeye_sum <- daily_escapement_sockeye %>% 
+  separate(sampleDate, into = c("year", "month", "day"), sep = "-") %>%
+  group_by(Location, year) %>%
+  summarise(annual_count = sum(DailyCount))
+
+  head(daily_escapement_sockeye_sum)
+```
+
+```{r}
+goals <- read.csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/knb.92014.1")
+
+  head(goals)
+```
+
+```{r}
+goals_clean <- goals %>%
+  select(Species, Region, System, Lower, Upper, Type, Initial.Year) %>%  
+  filter(Region == "Bristol Bay" & Species == "Sockeye") %>% 
+  mutate(Lower = as.numeric(Lower), Initial.Year = as.numeric(Initial.Year))
+
+head(goals)
+```
+```{r}
+goals_joined <- left_join(esc_clean, goals_clean, by = c("Lcation" = "System")) %>% 
+  #mutate(goal_met = ifelse(annual_count > Lower & annual_count < Upper, TRUE, FALSE)) %>% 
+  #select(-Species, -Region)
+head(goals_joined)
+```
+

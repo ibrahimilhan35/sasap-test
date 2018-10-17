@@ -1,0 +1,180 @@
+---
+title: "GGplot Tutorial"
+author: "Ibrahim Ilhan"
+date: "10/17/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load example data
++ Load data from the KNB for generating plots.
+```{r}
+suppressPackageStartupMessages({
+  library(ggplot2)
+  library(tidyr)
+  library(dplyr)
+  library(DT)
+})
+
+# https://knb.ecoinformatics.org/#view/urn:uuid:e05865d7-678d-4513-9061-2ab7d979f8e7
+# Search 'permit value'
+permits <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3Aa3c58bd6-481e-4c64-aa93-795df10a4664", method = "libcurl"), stringsAsFactors = FALSE)
+
+datatable(permits)
+```
+
+# Start plotting
+
+```{r}
+ggplot(permits, aes(x=Value, y=StdDev, color=Gear)) + 
+  # ggplot(permits, )
+  # + sign allows adding another layer of plot, using ggplot
+  geom_point()
+```
+
+```{r}
+ggplot(permits, aes(x=Value, y=StdDev)) + 
+  # ggplot(permits, )
+  # + sign allows adding another layer of plot, using ggplot
+  geom_point(color="blue")
+```
+
+```{r}
+ggplot(permits, aes(Value)) + 
+  geom_histogram()
+#geom_histogram(color = "red")
+```
+
+```{r}
+ggplot(permits, aes(Gear, Value)) + 
+  geom_boxplot()
+```
+```{r}
+permits_ci <- permits %>%
+  filter(Region == "Cook Inlet")
+
+ggplot(permits_ci, aes(Gear, Value)) + 
+  geom_violin()
+```
+
+```{r}
+ggplot(permits_ci, aes(Gear, Value)) +
+    geom_violin() +
+    geom_point(shape = 1, position = "jitter")
+```
+
+```{r}
+ggplot(permits, aes(Value, StdDev)) + 
+  geom_point() +
+  geom_smooth()
+# alpha, transparency
+```
+```{r}
+ggplot(permits, aes(Value, StdDev)) + 
+  geom_point() +
+  geom_smooth(method = "lm")
+# alpha, transparency
+# ggsave, saving it into a certain format
+```
+```{r}
+permits_sum <- permits %>% 
+  group_by(Gear, Region) %>% 
+  summarize(mean_value = mean(Value, na.rm = T))
+# na.rm , removes N/A values from the column that allwos calculating without the N/A values
+```
+
+```{r}
+ggplot(permits_sum, aes(x = Gear, y = mean_value, fill = Region)) +
+  geom_bar(position = "stack", stat = "identity")
+```
+
+```{r}
+permits_se_seine <- permits %>% 
+  filter(Gear == "Purse Seine", 
+         Region == "Southeast")
+
+ggplot(permits_se_seine, aes(Year, Value)) + 
+  geom_point() +
+  geom_line()
+```
+```{r}
+permits_se_seine <- permits %>% 
+  filter(Gear == "Purse Seine", 
+         Region == "Southeast")
+
+ggplot(permits_se_seine, aes(Year, Value)) + 
+  geom_point() +
+  geom_line() +
+  scale_y_continuous(limits = c(0, max(permits_se_seine$Value))) +
+  # scale_x_continuous(limits = c(2000, max(permits_se_seine$Year))) +
+  scale_x_continuous(limits = c(2000, 2010))
+```
+
+```{r}
+ggplot(permits, aes(Value, StdDev, color = Gear)) + 
+  geom_point() + 
+  scale_x_log10()
+```
+
+```{r}
+ggplot(permits, aes(Value, StdDev, color = Gear)) + 
+  geom_point() +
+  theme_classic()
+```
+
+```{r}
+ggplot(permits, aes(Value, StdDev, color = Gear)) + 
+  geom_point() +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.background = element_rect(fill = "#EEEEEE", color = "black"),
+        legend.title = element_blank(),
+        axis.title = element_text(size = 16))
+```
+
+```{r}
+my_theme <- theme_bw() +
+  theme(legend.title = element_blank(),
+        panel.grid.major = element_line(size = 1, linetype = 4),
+        panel.grid.minor = element_blank())
+  
+ggplot(permits, aes(Value, StdDev, color = Gear)) +
+  geom_point() +
+  my_theme
+```
+```{r}
+ggplot(permits_ci, aes(Year, Value)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~ Gear)
+```
+```{r}
+ggplot(permits_ci, aes(Year, Value)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~ Gear, ncol = 1)
+```
+```{r}
+ggplot(permits, aes(Year, Value, group = Region)) +
+  geom_line() +
+  facet_wrap(~ Gear)
+```
+
+```{r}
+suppressPackageStartupMessages({
+  library(gridExtra)})
+
+p1 <- ggplot(permits_se_seine, aes(Year, Value)) +
+  geom_point() + 
+  geom_line()
+
+p2 <- ggplot(permits %>% filter(Gear == "Purse Seine"), aes(Region, Value)) +
+  geom_boxplot() +
+  scale_y_continuous(labels = function(x) { format(x, scientific = FALSE) })
+
+grid.arrange(p1, p2)
+```
+
